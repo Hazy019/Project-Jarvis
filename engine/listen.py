@@ -6,10 +6,11 @@ import speech_recognition as sr
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        # Dynamic energy threshold helps Jarvis adjust to room noise
-        r.adjust_for_ambient_noise(source, duration=0.5)
+        # Add this line to calibrate for background noise
+        r.adjust_for_ambient_noise(source, duration=1) 
         print("Listening...")
-        audio = r.listen(source, phrase_time_limit=5)
+        r.pause_threshold = 1 # Wait 1 second of silence before stopping
+        audio = r.listen(source)
 
     try:
         query = r.recognize_google(audio, language='en-in')

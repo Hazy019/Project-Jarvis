@@ -1,0 +1,11 @@
+pyttsx3==2.90
+SpeechRecognition==3.10.4
+pyaudio
+python-dotenv==1.0.1
+google-genai
+psutil==5.9.6
+pycaw
+comtypes==1.1.14
+pyautogui
+setuptools
+requests
