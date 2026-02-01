@@ -9,3 +9,4 @@ comtypes==1.1.14
 pyautogui
 setuptools
 requests
+pyautogui

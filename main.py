@@ -3,73 +3,145 @@ from engine.speak import speak
 from engine.listen import listen
 from engine.brain import generate_response
 from engine.memory import init_db, get_memory, update_memory
-from engine.visuals import refresh_ui
+from engine.visuals import refresh_ui, toggle_player
 from skills.system_skills import get_battery_status, set_volume, search_youtube
+from skills.roblox_launcher import launch_roblox 
 from skills.code_assistance import read_project_file
-from skills.roblox_launcher import launch_roblox
+from skills.windows_control import execute_windows_command
+import sqlite3
 
-def startup():
-    init_db()
-    refresh_ui()
-    user_name = get_memory("user_name")
-    if user_name:
-        speak(f"Welcome back, {user_name}. Coding environment ready.")
+def delete_user_name():
+    """Clears the user_name from the database."""
+    conn = sqlite3.connect('jarvis_memory.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM memory WHERE key = 'user_name'")
+    conn.commit()
+    conn.close()
+    return "Data wiped. I have no memory of your name, Sir."
+
+def show_skills():
+    skills_list = (
+        "I can manage your system: check battery, set volume, and search YouTube. "
+        "I can assist in coding: scan your project files or write functions. "
+        "I can control Windows: minimize windows or scroll. "
+        "And I can launch Roblox for you. Just ask."
+    )
+    speak(skills_list)
+    print("\n--- JARVIS CAPABILITIES ---\n1. ROBLOX: 'Open Roblox'\n2. CODING: 'Scan code'\n3. SYSTEM: 'Battery', 'Volume to X'\n4. WEB: 'YouTube [Topic]'\n5. WINDOWS: 'Minimize', 'Scroll down'\n")
+
+def verify_user():
+    """Asks for confirmation and updates name if denied."""
+    user_name = get_memory("user_name") or "Sir"
+    speak(f"Is that really you, {user_name}? Please confirm with a yes or no.")
+    
+    confirmation = listen().lower()
+    
+    if "yes" in confirmation or "yeah" in confirmation:
+        speak(f"Access granted. Welcome back, {user_name}.")
+        return True
+        
+    elif "no" in confirmation or "not" in confirmation:
+        speak("I apologize. My records must be outdated. What is your name, then?")
+        new_name = listen()
+        
+        if new_name and new_name != "none":
+            # Save to SQLite so he remembers forever
+            update_memory("user_name", new_name) 
+            speak(f"Protocol updated. I shall call you {new_name} from now on.")
+            return True
+        else:
+            speak("I didn't catch that. Security protocol active. Action aborted.")
+            return False
+            
     else:
-        speak("Systems online. What shall I call you, Sir?")
-        name = listen()
-        if name:
-            update_memory("user_name", name)
-            speak(f"Initialized for {name}.")
+        speak("Unauthorized response. Aborting task for safety.")
+        return False
+    
 
 if __name__ == "__main__":
-    startup()
-
+    print("BOOTING JARVIS...")
+    init_db()
+    
+    # Check if we know the user
+    name = get_memory("user_name")
+    if name:
+        speak(f"Systems online. Welcome back, {name}.")
+    else:
+        speak("Ready to initialize. What is your name?")
+        name_input = listen()
+        if name_input:
+            update_memory("user_name", name_input)
+            speak(f"Memory updated. Hello, {name_input}.")
+    
     WAKE_WORD = "jarvis"
     
     while True:
         query = listen()
+        
         if WAKE_WORD in query:
-            speak("Ready.")
+            speak("I'm Ready.")
             command = listen()
             if not command: continue
 
-            # --- NEW: SYSTEM OVERVIEW ---
-            if "what can you do" in command or "commands" in command:
-                help_text = (
-                    "I can manage your system, Sir. Currently: "
-                    "I can check battery levels, control volume, launch Roblox, and search YouTube. "
-                    "For development, I can scan your local files for errors and generate professional code."
-                )
-                speak(help_text)
+            win_response = execute_windows_command(command)
+            if win_response:
+                speak(win_response)
+                continue
 
-            # --- NEW: LEAD ENGINEER MODE (AUTO-DEBUG) ---
-            elif "debug" in command:
-                speak("Analyzing the current directory for architectural flaws...")
-                # Add logic to scan common files
-                content = read_project_file("main.py")
-                prompt = f"Act as a Senior Lead Engineer. Find potential bugs or optimization points in this code: \n{content}"
-                speak(generate_response(prompt))
+            if "forget my name" in command or "drop my name" in command:
+                speak("Are you sure you want me to wipe our introduction?")
+                if verify_user():
+                    result = delete_user_name()
+                    speak(result)
+                continue
+            
+            # --- THE HELP SKILL ---
+            if "what can you do" in command or "commands" in command:
+                show_skills()
+            
+            # NEW: Identity Correction Skill
+            if "wrong name" in command or "change my name" in command:
+                speak("I apologize, Sir. What is the correct way to address you?")
+                new_name = listen()
+                if new_name and new_name != "none":
+                    update_memory("user_name", new_name)
+                    speak(f"Correction logged. I shall refer to you as {new_name} from now on.")
+                else:
+                    speak("I didn't catch that. I will keep your current name for now.")
+
+            # --- GAMING SKILL ---
+            if "roblox" in command:
+                toggle_player(False) # Hide the Mond player for better gaming view
+                speak(launch_roblox())
+
+            if "youtube" in command:
+                topic = command.replace("youtube", "").strip()
+                speak(search_youtube(topic))
 
             # --- CODING SKILL ---
             if "scan" in command and "code" in command:
-                file_to_scan = "main.py" # You can expand this to listen for the filename
-                content = read_project_file(file_to_scan)
-                speak(f"I've read {file_to_scan}. What is your coding question?")
-                question = listen()
-                prompt = f"Analyze this code:\n{content}\n\nTask: {question}"
-                speak(generate_response(prompt))
+                content = read_project_file("main.py")
+                speak("Code analysis complete. What is your question, Sir?")
+                q = listen()
+                speak(generate_response(f"Code Context: {content}\nQuestion: {q}"))
 
             # --- SYSTEM SKILLS ---
-            elif "battery" in command:
+            if "battery" in command:
                 speak(get_battery_status())
-            elif "youtube" in command:
-                term = command.replace("youtube", "").strip()
-                speak(search_youtube(term))
-            elif "open roblox" in command:
-                status = launch_roblox()
-                speak(status)
-            elif any(word in command for word in ["stop", "exit", "shutdown"]):
-                speak("Understood. Jarvis offline.")
-                break
+            elif "volume to" in command:
+                level = int(''.join(filter(str.isdigit, command)))
+                speak(set_volume(level))
+            elif "minimize" in command:
+                # Direct call to os instead of extra file for speed
+                import pyautogui
+                pyautogui.hotkey('win', 'd')
+                speak("Done.")
+            if any(word in command for word in ["shutdown", "exit", "close system"]):
+                if verify_user():
+                    speak("Powering down all systems. Goodbye.")
+                    break
+            
+            # --- BRAIN (Freedom of Speech) ---
             else:
-                speak(generate_response(command))
+                response = generate_response(command)
+                speak(response)
