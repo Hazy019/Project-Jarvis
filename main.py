@@ -57,38 +57,66 @@ def verify_user():
         speak("Unauthorized response. Aborting task for safety.")
         return False
     
+def startup():
+    """Initializes the system and greets the user."""
+    init_db()
+    refresh_ui()
+    user_name = get_memory("user_name")
+    
+    if user_name:
+        speak(f"System online. Welcome back, {user_name}.")
+    else:
+        speak("System online. I don't believe we've met. What is your name?")
+        name = listen()
+        if name and name != "none":
+            update_memory("user_name", name)
+            speak(f"Pleasure to meet you, {name}.")
+        else:
+            speak("I didn't catch that. I'll just call you Sir for now.")
 
 if __name__ == "__main__":
-    print("BOOTING JARVIS...")
-    init_db()
-    
-    # Check if we know the user
-    name = get_memory("user_name")
-    if name:
-        speak(f"Systems online. Welcome back, {name}.")
-    else:
-        speak("Ready to initialize. What is your name?")
-        name_input = listen()
-        if name_input:
-            update_memory("user_name", name_input)
-            speak(f"Memory updated. Hello, {name_input}.")
+    startup()
     
     WAKE_WORD = "jarvis"
     
     while True:
         query = listen()
-        
+        if not query:
+            continue
+
         if WAKE_WORD in query:
-            speak("I'm Ready.")
-            command = listen()
-            if not command: continue
+            # If user spoke the command in the same utterance as the wake word,
+            # extract it and avoid asking again. Example: 'jarvis open brave'
+            remainder = query.replace(WAKE_WORD, '').strip()
+            if remainder:
+                command = remainder
+            else:
+                speak("I'm Ready.")
+                command = listen()
+                if not command:
+                    continue
+
+            if any(word in command for word in ["shutdown", "exit", "close system"]):
+                if verify_user():
+                    speak("Powering down all systems. Goodbye.")
+                    import os
+                    break
+                continue
 
             win_response = execute_windows_command(command)
             if win_response:
                 speak(win_response)
                 continue
 
-            if "forget my name" in command or "drop my name" in command:
+            if "roblox" in command:
+                toggle_player(False) # Hide the Mond player for better gaming view
+                speak(launch_roblox())
+
+            elif "youtube" in command:
+                topic = command.replace("youtube", "").strip()
+                speak(search_youtube(topic))
+
+            elif "forget my name" in command or "drop my name" in command:
                 speak("Are you sure you want me to wipe our introduction?")
                 if verify_user():
                     result = delete_user_name()
@@ -96,11 +124,11 @@ if __name__ == "__main__":
                 continue
             
             # --- THE HELP SKILL ---
-            if "what can you do" in command or "commands" in command:
+            elif "what can you do" in command or "commands" in command:
                 show_skills()
             
             # NEW: Identity Correction Skill
-            if "wrong name" in command or "change my name" in command:
+            elif "wrong name" in command or "change my name" in command:
                 speak("I apologize, Sir. What is the correct way to address you?")
                 new_name = listen()
                 if new_name and new_name != "none":
@@ -109,24 +137,16 @@ if __name__ == "__main__":
                 else:
                     speak("I didn't catch that. I will keep your current name for now.")
 
-            # --- GAMING SKILL ---
-            if "roblox" in command:
-                toggle_player(False) # Hide the Mond player for better gaming view
-                speak(launch_roblox())
-
-            if "youtube" in command:
-                topic = command.replace("youtube", "").strip()
-                speak(search_youtube(topic))
-
             # --- CODING SKILL ---
-            if "scan" in command and "code" in command:
-                content = read_project_file("main.py")
-                speak("Code analysis complete. What is your question, Sir?")
+            elif "scan" in command and "code" in command:
+                content = read_project_file()
+                speak("Code analysis complete. What is your question?")
                 q = listen()
-                speak(generate_response(f"Code Context: {content}\nQuestion: {q}"))
+                # For code questions prefer precise, non-fluffy answers
+                speak(generate_response(f"Code Context: {content}\nQuestion: {q}", free_speech=False))
 
             # --- SYSTEM SKILLS ---
-            if "battery" in command:
+            elif "battery" in command:
                 speak(get_battery_status())
             elif "volume to" in command:
                 level = int(''.join(filter(str.isdigit, command)))
@@ -136,12 +156,9 @@ if __name__ == "__main__":
                 import pyautogui
                 pyautogui.hotkey('win', 'd')
                 speak("Done.")
-            if any(word in command for word in ["shutdown", "exit", "close system"]):
-                if verify_user():
-                    speak("Powering down all systems. Goodbye.")
-                    break
             
             # --- BRAIN (Freedom of Speech) ---
             else:
-                response = generate_response(command)
+                # Allow expressive answers for general chat
+                response = generate_response(command, free_speech=True)
                 speak(response)

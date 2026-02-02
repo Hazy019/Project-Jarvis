@@ -7,16 +7,23 @@ def listen():
     
     with sr.Microphone() as source:
         print("SYSTEM: Calibrating...")
-        # Reduce duration for faster response
-        r.adjust_for_ambient_noise(source, duration=0.8) 
-        
+        # Reduce duration for faster response but keep adaptive threshold
+        r.adjust_for_ambient_noise(source, duration=0.4)
+
         print("Listening...")
-        # Lower threshold means he waits less time after you stop talking
-        r.pause_threshold = 0.6 
-        
-        # phrase_time_limit=5 means he WILL stop after 5 seconds no matter what
+        # Reduce pause threshold so recognizer stops listening sooner after speech
+        r.pause_threshold = 0.45
+        # Shorten non-speaking detection
+        r.non_speaking_duration = 0.2
+        # Optional: set a baseline energy to avoid large dynamic swings
         try:
-            audio = r.listen(source, timeout=5, phrase_time_limit=5)
+            r.energy_threshold = 300
+        except Exception:
+            pass
+
+        # phrase_time_limit and timeout tuned for responsiveness
+        try:
+            audio = r.listen(source, timeout=3, phrase_time_limit=4)
         except sr.WaitTimeoutError:
             return ""
 
