@@ -32,7 +32,7 @@ pip install -r requirements.txt
 Configure Environment:
 Create a .env file for your API keys (e.g., Gemini or OpenAI).
 
-🏗️ Future Roadmap
+Future Roadmap
 Vision Integration: Implementing image analysis capabilities similar to your work with Gemini Veo.
 
 Web Dashboard: A Next.js and Tailwind CSS interface for monitoring active tasks and system logs.
