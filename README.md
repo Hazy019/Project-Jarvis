@@ -1,7 +1,3 @@
-Since you are a software developer and AI automation builder, your README should reflect the technical complexity of your work with tools like Gemini and FastAPI. You can leverage your experience with AI-driven video production pipelines to present this project as a foundational step in your automation journey.
-
-Here is a professional, high-impact version of your README:
-
 🤖 Project Jarvis
 A modular, voice-activated Python AI assistant inspired by J.A.R.V.I.S.
 
