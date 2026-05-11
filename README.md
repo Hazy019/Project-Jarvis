@@ -21,13 +21,9 @@ Infrastructure: Designed for cloud compatibility with AWS and local system hooks
 
 Installation & Setup
 Clone the Repository:
-
-Bash
 git clone https://github.com/Hazy019/Project-Jarvis.git
 cd Project-Jarvis
 Install Dependencies:
-
-Bash
 pip install -r requirements.txt
 Configure Environment:
 Create a .env file for your API keys (e.g., Gemini or OpenAI).
