@@ -1,38 +1,34 @@
-Project Jarvis
-A modular, voice-activated Python AI assistant inspired by J.A.R.V.I.S.
+# 🤖 Project Jarvis
+**A modular, voice-activated Python AI assistant inspired by J.A.R.V.I.S.**
 
-Project Jarvis is an extensible AI framework designed for local automation and voice interaction. Built with a focus on modularity, it allows for the rapid integration of new "skills"—from simple system commands to complex API-driven workflows like those used in your short-form content pipelines.
+Project Jarvis is an extensible AI framework designed for local automation and voice interaction. Built with a focus on modularity, it allows for the rapid integration of new "skills"—from simple system commands to complex API-driven workflows.
 
-Key Features
-Speech-to-Intent: Leverages advanced speech recognition to interpret user commands in real-time.
+## ✨ Key Features
+* **Speech-to-Intent:** Leverages advanced speech recognition to interpret user commands in real-time.
+* **Modular Skill Architecture:** Easily add custom scripts for automation, such as managing AWS Lambda rendering or S3 storage.
+* **Natural Voice Feedback:** Provides an immersive experience with customizable text-to-speech (TTS) engines.
+* **Intelligent Automation:** Built to serve as a hub for AI-driven tasks, utilizing expertise in Grok and Gemini integrations.
 
-Modular Skill Architecture: Easily add custom scripts for automation, such as managing AWS Lambda rendering or S3 storage.
+## 🛠️ Technical Stack
+* **Language:** Python 3.x
+* **Core Libraries:** `SpeechRecognition`, `pyttsx3`, `FastAPI`
+* **Infrastructure:** Designed for cloud compatibility with AWS and local system hooks.
 
-Natural Voice Feedback: Provides an immersive experience with customizable text-to-speech (TTS) engines.
+## 📦 Installation & Setup
 
-Intelligent Automation: Built to serve as a hub for AI-driven tasks, utilizing your expertise in Grok and Gemini integrations.
+1. **Clone the Repository:**
+   git clone [https://github.com/Hazy019/Project-Jarvis.git](https://github.com/Hazy019/Project-Jarvis.git)
+   cd Project-Jarvis
 
-Technical Stack
-Language: Python 3.x.
+2. **Install Dependencies:**
+  pip install -r requirements.txt
 
-Core Libraries: SpeechRecognition, pyttsx3, FastAPI (for potential web-hooks).
+3. **Configure Environment:**
+  Create a .env file in the root directory for your API keys.
 
-Infrastructure: Designed for cloud compatibility with AWS and local system hooks.
+## 🏗️ Future Roadmap
+* **Vision Integration:** Implementing image analysis capabilities similar to Gemini Veo.
 
-Installation & Setup
-Clone the Repository:
-git clone https://github.com/Hazy019/Project-Jarvis.git
-cd Project-Jarvis
-Install Dependencies:
-pip install -r requirements.txt
-Configure Environment:
-Create a .env file for your API keys (e.g., Gemini or OpenAI).
-
-Future Roadmap
-Vision Integration: Implementing image analysis capabilities similar to your work with Gemini Veo.
-
-Web Dashboard: A Next.js and Tailwind CSS interface for monitoring active tasks and system logs.
-
-Video Pipeline Triggering: Using Jarvis to initiate automated B-roll generation and video trimming.
+* **Web Dashboard:** A Next.js and Tailwind CSS interface for monitoring.
 
 Developed with ❤️ by Kyrell Santillan (Hazy019)
