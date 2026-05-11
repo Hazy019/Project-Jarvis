@@ -19,7 +19,7 @@ Core Libraries: SpeechRecognition, pyttsx3, FastAPI (for potential web-hooks).
 
 Infrastructure: Designed for cloud compatibility with AWS and local system hooks.
 
-📦 Installation & Setup
+Installation & Setup
 Clone the Repository:
 
 Bash
