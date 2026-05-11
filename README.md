@@ -12,7 +12,7 @@ Natural Voice Feedback: Provides an immersive experience with customizable text-
 
 Intelligent Automation: Built to serve as a hub for AI-driven tasks, utilizing your expertise in Grok and Gemini integrations.
 
-🛠️ Technical Stack
+Technical Stack
 Language: Python 3.x.
 
 Core Libraries: SpeechRecognition, pyttsx3, FastAPI (for potential web-hooks).
