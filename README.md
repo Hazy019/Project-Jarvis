@@ -1,6 +1,8 @@
 Project Jarvis
 A modular, voice-activated Python AI assistant inspired by J.A.R.V.I.S.
 
+--
+
 Project Jarvis is an extensible AI framework designed for local automation and voice interaction. Built with a focus on modularity, it allows for the rapid integration of new "skills"—from simple system commands to complex API-driven workflows like those used in your short-form content pipelines.
 
 Key Features
