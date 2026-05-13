@@ -26,3 +26,12 @@ def get_memory(key):
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else None
+
+def get_all_memory():
+    """Returns all key-value pairs from memory as a dictionary."""
+    conn = sqlite3.connect('jarvis_memory.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM memory")
+    rows = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in rows}

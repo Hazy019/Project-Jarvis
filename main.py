@@ -8,6 +8,7 @@ from skills.system_skills import get_battery_status, set_volume, search_youtube
 from skills.roblox_launcher import launch_roblox 
 from skills.code_assistance import read_project_file
 from skills.windows_control import execute_windows_command
+from skills.workspace_protocols import initiate_protocol
 import sqlite3
 
 def delete_user_name():
@@ -78,87 +79,117 @@ if __name__ == "__main__":
     startup()
     
     WAKE_WORD = "jarvis"
+    FOLLOW_UP_MODE = False
     
     while True:
         query = listen()
+        
         if not query:
+            FOLLOW_UP_MODE = False # Reset if no speech detected
             continue
 
-        if WAKE_WORD in query:
-            # If user spoke the command in the same utterance as the wake word,
-            # extract it and avoid asking again. Example: 'jarvis open brave'
-            remainder = query.replace(WAKE_WORD, '').strip()
-            if remainder:
-                command = remainder
-            else:
+        # Check if we should respond
+        should_respond = (WAKE_WORD in query) or FOLLOW_UP_MODE
+        
+        if should_respond:
+            command = query.replace(WAKE_WORD, "").strip()
+            
+            # If they just said the wake word, prompt for command
+            if not command and not FOLLOW_UP_MODE:
                 speak("I'm Ready.")
                 command = listen()
                 if not command:
+                    FOLLOW_UP_MODE = False
                     continue
+            
+            if not command:
+                continue
 
+            # --- SYSTEM: EXIT/SHUTDOWN ---
             if any(word in command for word in ["shutdown", "exit", "close system"]):
                 if verify_user():
                     speak("Powering down all systems. Goodbye.")
-                    import os
                     break
+                FOLLOW_UP_MODE = True
                 continue
 
+            # --- SKILLS: WINDOWS CONTROL ---
             win_response = execute_windows_command(command)
             if win_response:
                 speak(win_response)
+                FOLLOW_UP_MODE = True
                 continue
 
+            # --- SKILLS: ROBLOX ---
             if "roblox" in command:
-                toggle_player(False) # Hide the Mond player for better gaming view
+                toggle_player(False)
                 speak(launch_roblox())
+                FOLLOW_UP_MODE = True
 
+            # --- SKILLS: WORKSPACE PROTOCOLS ---
+            elif "protocol" in command or "initiate" in command:
+                protocol_name = command.replace("protocol", "").replace("initiate", "").strip()
+                speak(initiate_protocol(protocol_name))
+                FOLLOW_UP_MODE = True
+
+            # --- SKILLS: YOUTUBE ---
             elif "youtube" in command:
                 topic = command.replace("youtube", "").strip()
                 speak(search_youtube(topic))
+                FOLLOW_UP_MODE = True
 
+            # --- SYSTEM: MEMORY WIPE ---
             elif "forget my name" in command or "drop my name" in command:
                 speak("Are you sure you want me to wipe our introduction?")
                 if verify_user():
                     result = delete_user_name()
                     speak(result)
-                continue
-            
-            # --- THE HELP SKILL ---
+                FOLLOW_UP_MODE = True
+
+            # --- SYSTEM: HELP ---
             elif "what can you do" in command or "commands" in command:
                 show_skills()
+                FOLLOW_UP_MODE = True
             
-            # NEW: Identity Correction Skill
-            elif "wrong name" in command or "change my name" in command:
+            # --- SYSTEM: IDENTITY CORRECTION ---
+            elif any(word in command for word in ["wrong name", "change my name", "not my name", "not zian"]):
                 speak("I apologize, Sir. What is the correct way to address you?")
                 new_name = listen()
                 if new_name and new_name != "none":
                     update_memory("user_name", new_name)
                     speak(f"Correction logged. I shall refer to you as {new_name} from now on.")
-                else:
-                    speak("I didn't catch that. I will keep your current name for now.")
+                FOLLOW_UP_MODE = True
 
-            # --- CODING SKILL ---
+            # --- SKILLS: CODING ---
             elif "scan" in command and "code" in command:
                 content = read_project_file()
                 speak("Code analysis complete. What is your question?")
                 q = listen()
-                # For code questions prefer precise, non-fluffy answers
                 speak(generate_response(f"Code Context: {content}\nQuestion: {q}", free_speech=False))
+                FOLLOW_UP_MODE = True
 
-            # --- SYSTEM SKILLS ---
+            # --- SKILLS: SYSTEM MONITORING ---
             elif "battery" in command:
                 speak(get_battery_status())
+                FOLLOW_UP_MODE = True
             elif "volume to" in command:
-                level = int(''.join(filter(str.isdigit, command)))
-                speak(set_volume(level))
+                try:
+                    level = int(''.join(filter(str.isdigit, command)))
+                    speak(set_volume(level))
+                except:
+                    speak("I didn't catch the volume level.")
+                FOLLOW_UP_MODE = True
             elif "minimize" in command:
-                # Direct call to os instead of extra file for speed
                 import pyautogui
                 pyautogui.hotkey('win', 'd')
                 speak("Done.")
+                FOLLOW_UP_MODE = True
             
-            # --- BRAIN (Freedom of Speech) ---
+            # --- BRAIN: GENERAL CHAT ---
             else:
-                # Allow expressive answers for general chat
                 response = generate_response(command, free_speech=True)
                 speak(response)
+                FOLLOW_UP_MODE = True
+        else:
+            # Not addressed to Jarvis and not in follow-up mode
+            FOLLOW_UP_MODE = False
